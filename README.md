@@ -1,19 +1,19 @@
-# ⚡ RTL Design & Synthesis Workshop — VSD × SKY130
+<h1 align="center">⚡ RTL Design and Synthesis Workshop — VSD x SKY130</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Workshop-RTL%20Design%20%26%20Synthesis-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Duration-10%20Days-orange?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Batch-May%2027%20–%20Jun%205%202026-brightgreen?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Status-In%20Progress-yellow?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Platform-VSD--IAT-9cf?style=for-the-badge" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Tool-iverilog-blue?style=flat-square&logo=gnu" />
-  <img src="https://img.shields.io/badge/Tool-GTKWave-teal?style=flat-square" />
-  <img src="https://img.shields.io/badge/Tool-Yosys-red?style=flat-square" />
-  <img src="https://img.shields.io/badge/PDK-SKY130-9cf?style=flat-square" />
+  <img src="https://img.shields.io/badge/iverilog-Simulator-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/GTKWave-Waveform%20Viewer-teal?style=flat-square" />
+  <img src="https://img.shields.io/badge/Yosys-Synthesis-red?style=flat-square" />
+  <img src="https://img.shields.io/badge/SKY130-PDK-lightblue?style=flat-square" />
   <img src="https://img.shields.io/badge/Language-Verilog-informational?style=flat-square" />
-  <img src="https://img.shields.io/badge/Platform-Linux-lightgrey?style=flat-square&logo=linux" />
+  <img src="https://img.shields.io/badge/OS-Linux-lightgrey?style=flat-square&logo=linux" />
 </p>
 
 <p align="center">
@@ -26,9 +26,9 @@
 ## 📌 Table of Contents
 
 - [About the Workshop](#-about-the-workshop)
-- [Tools & Environment](#-tools--environment)
-- [Modules Covered](#-modules-covered)
-- [Key Concepts](#-key-concepts)
+- [Tools and Environment](#-tools-and-environment)
+- [Course Structure](#-course-structure)
+- [What I Am Learning](#-what-i-am-learning)
 - [Repository Structure](#-repository-structure)
 - [Acknowledgements](#-acknowledgements)
 
@@ -36,79 +36,91 @@
 
 ## 🎯 About the Workshop
 
-This is a self-paced, recorded workshop offered by **VSD** on the **VSD-IAT** platform, covering the complete RTL-to-netlist design flow using industry-aligned open-source tools.
+I am taking this workshop offered by **VSD** on the **VSD-IAT** platform to get hands-on with the complete RTL to gate-level netlist design flow using open-source tools. The workshop runs for **10 days (27 May 2026 to 5 June 2026)**, covering 5 structured days of content with dedicated time each day for lectures and lab practice.
 
-Participants learn to write synthesizable Verilog, simulate designs, debug waveforms, and map RTL to real silicon cells using the **SKY130 standard cell library** — the same PDK used in Google-sponsored open tapeouts.
+The workshop uses the **SKY130 standard cell library** — the same open PDK backed by Google and SkyWater that is used in real tapeouts — which makes the synthesis labs feel a lot more practical than working with generic libraries.
 
-**What this workshop teaches:**
-- Writing **RTL in Verilog** — modules, ports, always blocks, testbenches
-- Simulating designs using **iverilog** and viewing waveforms in **GTKWave**
-- Understanding **synthesis concepts** — why RTL maps differently than expected
-- Running **Yosys synthesis** — from RTL to gate-level netlist
-- Working with real **SKY130 standard cells** in an open-source ASIC flow
-
-> 💡 This repo documents my personal lab work, commands, screenshots, and observations across all modules.
+> This repo is my personal documentation of everything I work through — lab commands, waveform screenshots, netlist outputs, and notes from each session.
 
 ---
 
-## 🛠 Tools & Environment
+## 🛠 Tools and Environment
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| `iverilog` | Verilog simulation compiler | Open-source HDL simulator |
-| `GTKWave` | Waveform viewer | Reads `.vcd` files from iverilog |
-| `Yosys` | Logic synthesis | Open-source synthesis suite |
-| `SKY130 PDK` | Standard cell library | Google + SkyWater open PDK |
-| `Linux Terminal` | All commands run here | Ubuntu / WSL compatible |
-| `git` | Version control | For this repo |
-
----
-
-## 📚 Modules Covered
-
-| Module | Title | Topics |
-|--------|-------|--------|
-| **Module 1** | Intro to Verilog & Simulation | iverilog setup, GTKWave, simulation flow, `.vcd` files |
-| **Module 2** | RTL Coding Styles & Debugging | Module design, port connections, testbench writing, debugging |
-| **Module 3** | RTL Design Labs | Combinational circuits, MUX, adders, comparators, DFFs |
-| **Module 4** | Introduction to Yosys | Synthesis concepts, Liberty files, `synth`, `abc`, `show` commands |
-| **Module 5** | RTL to Netlist with SKY130 | Gate-level synthesis, SKY130 cell mapping, netlist analysis |
-
-> 📂 Each module has its own folder in this repo with lab notes, Verilog files, waveform dumps, and screenshots.
+| Tool | Purpose |
+|------|---------|
+| `iverilog` | Compiles and simulates Verilog designs |
+| `GTKWave` | Views `.vcd` waveform dumps from simulation |
+| `Yosys` | Synthesizes RTL Verilog to a gate-level netlist |
+| `SKY130 PDK` | Standard cell library used during synthesis |
+| `gvim` | Viewing Verilog and netlist files in the terminal |
+| `git` | Version control for this repo |
 
 ---
 
-## 🧠 Key Concepts
+## 📅 Course Structure
+
+| Day | Topic |
+|-----|-------|
+| [Day 1](./Day_1/) | Introduction to Verilog RTL Design and Synthesis |
+| Day 2 | Timing libs, hierarchical vs flat synthesis |
+| Day 3 | Combinational and sequential optimizations |
+| Day 4 | GLS, blocking vs non-blocking statements |
+| Day 5 | Optimization in synthesis |
+
+---
+
+## 🧠 What I Am Learning
 
 <details>
-<summary><b>🔷 RTL Design & Simulation</b></summary>
+<summary><b>🔷 Day 1 -- Introduction to Verilog RTL Design and Synthesis</b></summary>
 
-- Writing synthesizable Verilog — always blocks, assign statements, module hierarchy
-- Behavioral vs structural modeling
-- How simulators work — change in input triggers change in output
-- Writing testbenches and applying stimulus
-- Simulating with `iverilog` → generating `.vcd` → loading in `GTKWave`
+- How a simulator works: any change in input causes a change in output, and that is what gets tracked
+- Writing a testbench and linking it with the design using iverilog
+- Generating a `.vcd` (Value Change Dump) file and loading it in GTKWave
+- What Yosys does: converts RTL Verilog into a gate-level netlist
+- Running synthesis commands: `read_verilog`, `synth`, `abc`, `write_verilog`, `show`
+- How to verify synthesis output using the same testbench stimulus from RTL simulation
 
 </details>
 
 <details>
-<summary><b>🔶 Synthesis with Yosys</b></summary>
+<summary><b>🔶 Day 2 -- Timing libs, Hierarchical vs Flat Synthesis</b></summary>
 
-- What synthesis does: RTL → Boolean logic → gate-level netlist
-- Reading Liberty (`.lib`) files — cell timing and area data
-- Running `synth`, `abc`, `show` in Yosys
-- Understanding the synthesized netlist
-- Why synthesis result may differ from simulation (synthesis-simulation mismatch)
+- Understanding the `.lib` Liberty file structure -- what PVT corners mean and why they matter
+- Difference between hierarchical and flat synthesis and when each is used
+- How sub-modules are preserved or flattened during synthesis
+- Efficient synthesis strategies for repeated module instances
 
 </details>
 
 <details>
-<summary><b>🟣 SKY130 PDK Awareness</b></summary>
+<summary><b>🟣 Day 3 -- Combinational and Sequential Optimizations</b></summary>
 
-- Structure of the SKY130 standard cell library
-- How cells are selected and mapped during synthesis
-- Gate-level simulation on the synthesized netlist
-- Real silicon relevance — these exact cells are used in open-source tapeouts
+- Combinational logic optimization techniques -- constant propagation and Boolean minimization
+- Sequential logic optimizations -- state reduction and retiming
+- How Yosys applies these optimizations during the synthesis run
+- Special flip-flop coding styles that influence synthesis output
+
+</details>
+
+<details>
+<summary><b>🟡 Day 4 -- Gate Level Simulation, Blocking vs Non-Blocking</b></summary>
+
+- What Gate Level Simulation (GLS) is and why it is needed after synthesis
+- How to run GLS using the synthesized netlist and SKY130 cell models
+- Synthesis-simulation mismatches and what causes them
+- The difference between blocking and non-blocking assignments in Verilog
+- How blocking vs non-blocking affects the synthesized hardware
+
+</details>
+
+<details>
+<summary><b>🟢 Day 5 -- Optimization in Synthesis</b></summary>
+
+- Resource sharing and area optimization during synthesis
+- Logic restructuring for timing closure
+- Trade-offs between area, power, and performance in RTL-to-netlist mapping
+- Final synthesis techniques for cleaner and more efficient gate-level output
 
 </details>
 
@@ -119,38 +131,36 @@ Participants learn to write synthesizable Verilog, simulate designs, debug wavef
 ```
 RTL-Design-Workshop/
 │
-├── README.md                  ← You are here
+├── README.md
 │
-├── Module_1/
-│   ├── README.md              ← Lab notes, observations, commands
-│   ├── *.v                    ← Verilog source and testbench files
-│   ├── *.vcd                  ← Waveform dump files
-│   └── screenshots/           ← GTKWave / terminal screenshots
+├── Day_1/
+│   ├── README.md          -- lab notes, commands, observations
+│   └── screenshots/       -- GTKWave and terminal captures
 │
-├── Module_2/
-│   └── ...                    ← Same structure
-│
-├── Module_3/
+├── Day_2/
 │   └── ...
 │
-├── Module_4/
+├── Day_3/
 │   └── ...
 │
-├── Module_5/
+├── Day_4/
+│   └── ...
+│
+├── Day_5/
 │   └── ...
 │
 └── LICENSE
 ```
 
-> 📸 Every lab output — waveform, synthesis report, terminal snapshot — is captured in the module's `screenshots/` folder and referenced in that module's README.
+> 📸 Every lab output including waveforms, synthesis reports, and terminal snapshots is saved in the respective day's `screenshots/` folder and referenced inside that day's README.
 
 ---
 
 ## 🙏 Acknowledgements
 
-- **[Kunal Ghosh](https://www.linkedin.com/in/kunal-ghosh-vlsisystemdesign-com-28084836/)** — Founder, VSD; course instructor
-- **[Shon Taware](https://www.linkedin.com/in/shon-taware/)** — Co-instructor
-- **[VLSI System Design (VSD)](https://www.vlsisystemdesign.com)** — Workshop organizer and platform
+- **[Kunal Ghosh](https://www.linkedin.com/in/kunal-ghosh-vlsisystemdesign-com-28084836/)** -- Founder of VSD, course instructor
+- **[Shon Taware](https://www.linkedin.com/in/shon-taware/)** -- Co-instructor
+- **[VLSI System Design (VSD)](https://www.vlsisystemdesign.com)** -- Workshop organizer and platform
 - Open-source contributors behind **Yosys**, **iverilog**, **GTKWave**, and the **SKY130 PDK**
 
 ---
@@ -161,4 +171,4 @@ RTL-Design-Workshop/
   <img src="https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=for-the-badge" />
 </p>
 
-<p align="center"><i>This repository grows module by module as the workshop progresses. 🚀</i></p>
+<p align="center"><i>This repository grows day by day as I progress through the course. 🚀</i></p>
