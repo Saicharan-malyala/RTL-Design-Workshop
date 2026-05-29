@@ -28,7 +28,6 @@ This folder documents how I set up the three core open-source tools used through
 |------|---------|
 | OS | Ubuntu 24.04 (Noble) |
 | Host | Oracle VirtualBox — VSD workshop VM |
-| Terminal | XFCE Terminal (dark theme) |
 | User | `saicharan@vsdsquadron` |
 | Install method | `apt-get` for all three tools |
 
