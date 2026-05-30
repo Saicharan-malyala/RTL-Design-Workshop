@@ -239,7 +239,7 @@ The `-noattr` netlist is clean and readable — SKY130 cell instantiations are d
 
 After viewing the synthesized schematic (`show`) and the generated netlist (`good_latch_netlist.v`), the gate-level logic was manually traced and verified.
 
-![good_latch manual gate realization — hand-drawn schematic with NOR2B, NOR2, DLATCH_N and Boolean derivation](screenshots/12_manual_realization.png)
+<img src="screenshots/12_manual_realization.png" width="600" alt="good_latch manual gate realization"/>
 
 ### Verified connections from netlist
 
