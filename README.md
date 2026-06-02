@@ -167,7 +167,7 @@ RTL-Design-Workshop/
 
 <p align="center">
   <img src="https://img.shields.io/badge/Made%20with-❤️%20%26%20Verilog-blueviolet?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Open%20Source-Yes-brightgreen?style=for-the-badge" />
 </p>
 
