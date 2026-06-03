@@ -16,7 +16,7 @@
   - [Lab: opt_check2 — OR Gate Reduction](#lab-opt_check2--or-gate-reduction)
   - [Lab: opt_check3 — Multi-Level Reduction](#lab-opt_check3--multi-level-reduction)
   - [Lab Assignment: opt_check4 — XNOR Reduction](#lab-assignment-opt_check4--xnor-reduction)
-  - [Lab Assignment: multiple_modules_opt — Flatten Before Optimize](#lab-assignment-multiple_modules_opt--flatten-before-optimize)
+  - [Lab Assignment: multiple_module_opt — Flatten Before Optimize](#lab-assignment-multiple_module_opt--flatten-before-optimize)
 - [Section B — Sequential Logic Optimization](#section-b--sequential-logic-optimization)
   - [Lab: dff_const1 — Flop Retained](#lab-dff_const1--flop-retained)
   - [Lab: dff_const2 — Flop Eliminated](#lab-dff_const2--flop-eliminated)
@@ -143,39 +143,39 @@ The schematic is the most revealing of all the opt_check series. The cell `sky13
 
 ---
 
-### Lab Assignment: multiple_modules_opt — Flatten Before Optimize
+### Lab Assignment: multiple_module_opt — Flatten Before Optimize
 
 When a design has a module hierarchy, `opt_clean` operating on the top module cannot see inside instantiated submodules. The optimization is blocked at the module boundary. The solution is `flatten` — it inlines all submodule logic into the top level before `opt_clean` runs, giving the optimizer a complete view of the circuit.
 
 ```bash
 yosys
 read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-read_verilog multiple_modules_opt.v
-synth -top multiple_modules_opt
+read_verilog multiple_module_opt.v
+synth -top multiple_module_opt
 flatten
 opt_clean -purge
 abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-write_verilog -noattr multiple_modules_opt_net.v
+write_verilog -noattr multiple_module_opt_net.v
 show
 ```
 
 **Synthesis stats:**
 
-![multiple_modules_opt synthesis stats showing pre and post flatten hierarchy with final 2-cell result](screenshots/09_multiple_modules_opt_synth_stats.png)
+![multiple_module_opt synthesis stats showing pre and post flatten hierarchy with final 2-cell result](screenshots/09_multiple_modules_opt_synth_stats.png)
 
 The stats are worth reading carefully. Before `flatten`, Yosys reports the hierarchy separately: `sub_module1` has 1 `$_AND_` cell, and `multiple_module_opt` shows 3 cells with `sub_module1` still listed as an instance. After `flatten`, the hierarchy disappears and the design collapses to 2 cells at the top level: `$_AND_` and `$_OR_`. The `design hierarchy` section at the bottom confirms `multiple_module_opt` now contains everything inline. The wire count jumps from 7 to 10 during flattening — those are the internal submodule connections now exposed as top-level wires before `opt_clean` can prune them.
 
 **Schematic:**
 
-![multiple_modules_opt schematic after flatten showing a21o and and2 cells with inputs a b c d and output y via U1.y](screenshots/10_multiple_modules_opt_show.png)
+![multiple_module_opt schematic after flatten showing a21o and and2 cells with inputs a b c d and output y via U1.y](screenshots/10_multiple_modules_opt_show.png)
 
 The post-flatten, post-optimization schematic shows two cells. The upper cell is `sky130_fd_sc_hd__a21o_1` — this is an AND-OR cell, specifically `(A1 & A2) | B1`. Inputs `b` and `c` connect to `A1` and `A2`, input `y` (an intermediate signal from the submodule) connects to `B1`, and the output drives the top-level `y` port. The lower cell is `sky130_fd_sc_hd__and2_0` with `1'1` and input `a` — this is computing the submodule's internal AND result, which feeds into `U1.y`. The diamond node `U1.y` is the flattened internal wire from `sub_module1`. Input `d` is visible as an isolated node at the top, indicating it has no effect on the output after optimization. Without `flatten`, Yosys could not have discovered that `d` was redundant across the module boundary.
 
 **Generated netlist (write_verilog output):**
 
-![multiple_modules_opt netlist in gvim showing flattened verilog with a21o and and2 instantiations](screenshots/11_multiple_modules_opt_netlist.png)
+![multiple_module_opt netlist in gvim showing flattened verilog with a21o and and2 instantiations](screenshots/11_multiple_modules_opt_netlist.png)
 
-The netlist file `multiple_modules_opt_net.v` confirms the flattened result in Verilog form. The two SKY130 cell instantiations are visible directly at the module level with their pin connections. There is no `sub_module1` instantiation anywhere — it has been absorbed. This is the file that would be handed to the place-and-route tool in a real flow.
+The netlist file `multiple_module_opt_net.v` confirms the flattened result in Verilog form. The two SKY130 cell instantiations are visible directly at the module level with their pin connections. There is no `sub_module1` instantiation anywhere — it has been absorbed. This is the file that would be handed to the place-and-route tool in a real flow.
 
 ---
 
@@ -455,7 +455,7 @@ Same underlying RTL structure. One line of output assignment changed. The result
 | opt_check2 | Combinational | Mux + constant 1 → OR | 1 (`or2`) |
 | opt_check3 | Combinational | Nested mux + constants → AND3 | 1 (`and3`) |
 | opt_check4 | Combinational | Nested mux, redundant input → XNOR | 1 (`xnor2`) |
-| multiple_modules_opt | Combinational | Flatten required for cross-boundary opt | 2 (`a21o` + `and2`) |
+| multiple_module_opt | Combinational | Flatten required for cross-boundary opt | 2 (`a21o` + `and2`) |
 | dff_const1 | Sequential | Clock dependency — flop retained | 1 DFF |
 | dff_const2 | Sequential | Always 1 — flop eliminated | 0 |
 | dff_const3 | Sequential | Chained dependency — both flops retained | 2 DFFs |
