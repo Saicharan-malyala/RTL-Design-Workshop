@@ -141,11 +141,32 @@ The stats show 4 cells at the intermediate stage: `$_AND_: 1`, `$_MUX_: 2`, `$_N
 
 The schematic is the most revealing of all the opt_check series. The cell `sky130_fd_sc_hd__xnor2_1` has inputs `a` on pin `A` and `c` on pin `B`, with output `Y` driving `y`. But look at `b` — it appears as a floating diamond node `$b` that connects to nothing. Yosys traced through the logic, proved that `b` cannot affect `y` under any combination of inputs, and isolated it completely. The RTL had `b` in the expression but the synthesized circuit has no use for it. This is a powerful demonstration of how constant propagation and Boolean simplification together can expose redundant inputs that would be hard to spot by manual inspection.
 
+**Manual Realization:**
+
+![opt_check4 manual realization showing XNOR gate with a and c as inputs b marked as no connection and truth table confirming y equals a XNOR c](screenshots/29_manual_opt_check4.png)
+
+The manual realization confirms the Boolean simplification. The XNOR gate takes only `a` and `c` as inputs. Input `b` is shown with a dashed line marked "no connection" — exactly matching the floating `$b` node in the Yosys schematic. The truth table on the right verifies all four combinations of `a` and `c` produce the correct XNOR output. This hand-drawn analysis was done before running synthesis to predict what the optimizer would produce.
+
 ---
 
 ### Lab Assignment: multiple_module_opt — Flatten Before Optimize
 
 When a design has a module hierarchy, `opt_clean` operating on the top module cannot see inside instantiated submodules. The optimization is blocked at the module boundary. The solution is `flatten` — it inlines all submodule logic into the top level before `opt_clean` runs, giving the optimizer a complete view of the circuit.
+
+This lab demonstrates both views side by side: the hierarchical view before flattening, and the optimized view after.
+
+**Commands — Hierarchical view (before flatten):**
+
+```bash
+yosys
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog multiple_module_opt.v
+synth -top multiple_module_opt
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show multiple_module_opt
+```
+
+**Commands — Flattened and optimized view:**
 
 ```bash
 yosys
@@ -156,7 +177,7 @@ flatten
 opt_clean -purge
 abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 write_verilog -noattr multiple_module_opt_net.v
-show
+show multiple_module_opt
 ```
 
 **Synthesis stats:**
@@ -165,17 +186,23 @@ show
 
 The stats are worth reading carefully. Before `flatten`, Yosys reports the hierarchy separately: `sub_module1` has 1 `$_AND_` cell, and `multiple_module_opt` shows 3 cells with `sub_module1` still listed as an instance. After `flatten`, the hierarchy disappears and the design collapses to 2 cells at the top level: `$_AND_` and `$_OR_`. The `design hierarchy` section at the bottom confirms `multiple_module_opt` now contains everything inline. The wire count jumps from 7 to 10 during flattening — those are the internal submodule connections now exposed as top-level wires before `opt_clean` can prune them.
 
-**Schematic:**
+**Schematic (before flatten — hierarchy preserved):**
 
-![multiple_module_opt schematic after flatten showing a21o and and2 cells with inputs a b c d and output y via U1.y](screenshots/10_multiple_modules_opt_show.png)
+![multiple_module_opt hierarchical schematic showing sub_module1 box with internal wire n1 feeding a21o gate and output y visible on right](screenshots/10_multiple_modules_opt_hier_show.png)
 
-The post-flatten, post-optimization schematic shows two cells. The upper cell is `sky130_fd_sc_hd__a21o_1` — this is an AND-OR cell, specifically `(A1 & A2) | B1`. Inputs `b` and `c` connect to `A1` and `A2`, input `y` (an intermediate signal from the submodule) connects to `B1`, and the output drives the top-level `y` port. The lower cell is `sky130_fd_sc_hd__and2_0` with `1'1` and input `a` — this is computing the submodule's internal AND result, which feeds into `U1.y`. The diamond node `U1.y` is the flattened internal wire from `sub_module1`. Input `d` is visible as an isolated node at the top, indicating it has no effect on the output after optimization. Without `flatten`, Yosys could not have discovered that `d` was redundant across the module boundary.
+Without `flatten`, the hierarchy is preserved — `sub_module1` appears as a black-box instance with inputs `a`, `b`, `1'1` and output `y` feeding into internal wire `n1`. The `a21o` gate takes `n1`, `b`, and `c` as inputs and drives the output `y` on the right. Input `d` is already isolated as a floating node at the top — Yosys can see it is unused at the top level. However, the optimizer cannot look inside `sub_module1` to apply cross-boundary constant propagation. The submodule boundary acts as a wall for optimization.
+
+**Schematic (after flatten — fully optimized):**
+
+![multiple_module_opt flattened schematic showing a21o cell with U1.y internal wire d isolated and output y visible](screenshots/10_multiple_modules_opt_flat_show.png)
+
+After `flatten`, the submodule boundary disappears entirely. The `sub_module1` box is gone — its logic is now inlined at the top level. The optimizer sees the full circuit and confirms that `d` is redundant across the entire design. The result is a single `sky130_fd_sc_hd__a21o_1` cell. The diamond node `U1.y` is the flattened internal wire from the former `sub_module1`. Input `d` remains as an isolated floating node confirming it drives nothing. The output `y` is clearly visible on the right connected to the `a21o` output. Without `flatten`, Yosys could not have discovered this cross-boundary redundancy.
 
 **Generated netlist (write_verilog output):**
 
 ![multiple_module_opt netlist in gvim showing flattened verilog with a21o and and2 instantiations](screenshots/11_multiple_modules_opt_netlist.png)
 
-The netlist file `multiple_module_opt_net.v` confirms the flattened result in Verilog form. The two SKY130 cell instantiations are visible directly at the module level with their pin connections. There is no `sub_module1` instantiation anywhere — it has been absorbed. This is the file that would be handed to the place-and-route tool in a real flow.
+The netlist file `multiple_module_opt_net.v` confirms the flattened result in Verilog form. The SKY130 cell instantiations are visible directly at the module level with their pin connections. There is no `sub_module1` instantiation anywhere — it has been absorbed. This is the file that would be handed to the place-and-route tool in a real flow.
 
 ---
 
@@ -228,11 +255,17 @@ The stats confirm the flop was kept: `$_DFF_PP0_: 1` under the cell count. The `
 The schematic reveals the full mapped implementation. The main cell is `sky130_fd_sc_hd__dfrtp_1` — this is a D flip-flop with active-low asynchronous reset (`dfrtp` = D Flip-flop with Reset, True output, Positive clock). I can trace each connection:
 
 - `clk` connects directly to the `CLK` pin.
-- The constant `1'1` connects to the `D` pin — because the RTL always assigns `q <= 1` on the non-reset path, the D input is just permanently 1.
+- The constant `1'1` connects to the `D` pin — because the RTL always assigns `q <= 1` on the non-reset path, the D input is permanently 1.
 - `reset` goes through a `sky130_fd_sc_hd__clkinv_1` inverter before reaching the `RESET_B` pin. This is because the RTL uses active-high reset but the SKY130 `dfrtp` cell has an active-low reset pin (`RESET_B`). The inverter bridges that polarity difference.
 - `Q` drives the output `q`.
 
-There is also a feedback path where `q` connects back to the `Q` pin region — this is the standard DFF feedback structure Yosys uses in the dot viewer representation. The flop correctly models the behavior: on reset high, Q goes to 0 (RESET_B is low via the inverter); on the next clock edge after reset, D=1 gets captured and Q goes to 1.
+The flop correctly models the behavior: on reset high, Q goes to 0 (RESET_B is low via the inverter); on the next clock edge after reset, D=1 gets captured and Q goes to 1.
+
+**Manual Realization:**
+
+![dff_const1 manual realization showing DFF with clk D equals 1b1 and RST_B with notes that D is permanently HIGH q equals 0 during reset and q equals 1 at next posedge clk after reset deasserts](screenshots/30_manual_dff_const1.png)
+
+The manual realization drawn before synthesis shows the same structure: one DFF with `clk`, `D = 1'b1` permanently, and `RST_B` driven by an inverted reset. The notes confirm the key reasoning — D is permanently HIGH, so `q = 0` only during reset and `q = 1` at the next posedge clk after reset deasserts. This is why the flop cannot be removed: there is a clock-dependent transition that makes `q` non-constant.
 
 ---
 
@@ -263,7 +296,7 @@ The stats show `Number of cells: 0`. This is the definitive confirmation. Yosys 
 
 ![dff_const2 schematic showing constant 1 driving output q directly with clk and reset as dangling unconnected nodes](screenshots/17_dff_const2_show.png)
 
-This schematic is one of the most instructive results of the entire workshop. The oval node `1'1` (a constant 1 source) connects directly to the octagon `q` (the output port) through a buffer. The `reset` port appears as a disconnected octagon at the top left — it is present in the port list because the RTL declared it, but it drives nothing in the netlist. The `clk` port also appears as a disconnected node at the bottom left for the same reason. Both are dead inputs. The entire circuit reduces to a wire from VCC to the output `q`. No flip-flop, no clock tree needed, nothing. In a real chip, this would mean one fewer flop in the design, one fewer clock net to route, and guaranteed-correct output with zero propagation delay.
+This schematic is one of the most instructive results of the entire workshop. The oval node `1'1` (a constant 1 source) connects directly to the octagon `q` (the output port) through a buffer. The `reset` port appears as a disconnected octagon at the top left — it is present in the port list because the RTL declared it, but it drives nothing in the netlist. The `clk` port also appears as a disconnected node at the bottom left for the same reason. Both are dead inputs. The entire circuit reduces to a wire from VCC to the output `q`. No flip-flop, no clock tree needed, nothing.
 
 ---
 
@@ -281,11 +314,9 @@ Two flops, and the second one (`q`) takes its input from the first one (`q1`). W
 
 **Waveform:**
 
-![dff_const3 GTKWave showing clk reset and q where q transitions after reset but with a one-cycle delay observable at the waveform edge](screenshots/18_dff_const3_wave.png)
+![dff_const3 GTKWave showing clk reset q1 and q where q1 transitions first and q follows one clock cycle later after reset deasserts](screenshots/18_dff_const3_wave.png)
 
-The waveform shows `reset` held high and then deasserted around the 1540 ns mark. After reset goes low, `q` remains high briefly then goes low, then comes back high — this is the two-flop interaction playing out in real time. The `q1` signal is not shown in this capture (it will be added in the manual realization update), but the behavior of `q` already reveals the chained dependency: `q` cannot track a stable value until both flops have cycled through their transitions. The one-cycle lag between `q1` and `q` is the key observation that proves both flops must be retained.
-
-> **Note:** `q1` signal will be added to this waveform during the manual realization update.
+The waveform now shows all four signals: `clk`, `reset`, `q1`, and `q`. With `reset` held high, both `q1` and `q` hold their reset values (0 and 1 respectively). After `reset` deasserts around the 1540 ns mark, `q1` transitions to 1 on the next clock edge. However `q` does not immediately follow — it captures `q1`'s new value only on the clock edge after that, creating a visible one-cycle lag between `q1` and `q`. This chained dependency is exactly what prevents either flop from being optimized away.
 
 **Synthesis stats:**
 
@@ -297,7 +328,13 @@ Two cells are reported: `$_DFF_PP0_: 1` and `$_DFF_PP1_: 1`. The difference in s
 
 ![dff_const3 schematic showing two DFF cells dfstp_2 and dfrtp_1 with separate set and reset paths and q1 as internal wire between them](screenshots/20_dff_const3_show.png)
 
-The schematic shows two distinct flip-flop cells. The upper cell is `sky130_fd_sc_hd__dfstp_2` — a D flip-flop with active-low SET (`dfstp` = D Flip-flop with Set, True output, Positive clock, drive strength 2). This maps to `q`, which resets to 1 in the RTL. Its `SET_B` pin is driven by `reset` through an inverter path. The lower cell is `sky130_fd_sc_hd__dfrtp_1` — a D flip-flop with active-low RESET. This maps to `q1`, which resets to 0. Its `RESET_B` pin is driven by `reset` through a separate `clkinv_1` inverter. The internal wire `q1` (shown as a diamond node) connects the `Q` output of the lower flop to the `D` input of the upper flop — this is the chained dependency that prevents either flop from being optimized away. Both `clk` connections run to the respective `CLK` pins. The constant `1'1` connects to the `D` pin of the lower flop because `q1` always clocks to 1.
+The schematic shows two distinct flip-flop cells. The upper cell is `sky130_fd_sc_hd__dfstp_2` — a D flip-flop with active-low SET. This maps to `q`, which resets to 1 in the RTL. Its `SET_B` pin is driven by `reset` through an inverter path. The lower cell is `sky130_fd_sc_hd__dfrtp_1` — a D flip-flop with active-low RESET. This maps to `q1`, which resets to 0. Its `RESET_B` pin is driven by `reset` through a separate `clkinv_1` inverter. The internal wire `q1` (shown as a diamond node) connects the `Q` output of the lower flop to the `D` input of the upper flop — this is the chained dependency that prevents either flop from being optimized away.
+
+**Manual Realization:**
+
+![dff_const3 manual realization showing two flops in series Flop-1 with RST_B and D equals 1b1 driving q1 Flop-2 with SET_B taking D equals q1 and both reset paths through inverters from shared reset signal](screenshots/31_manual_dff_const3.png)
+
+The manual realization shows the two-flop chain drawn before synthesis. Flop-1 has `D = 1'b1` and `RST_B` — it maps to `q1` which resets to 0 and clocks to 1. Flop-2 has `D = q1` and `SET_B` — it maps to `q` which resets to 1 and clocks to whatever `q1` holds. Both reset paths go through separate inverters from the shared `reset` signal, matching exactly what Yosys produced in the synthesized schematic. The one-clock-cycle delay between the two flops is the structural reason neither can be removed.
 
 ---
 
@@ -317,7 +354,7 @@ Both outputs are permanently 1 under all conditions. Yosys eliminates both flops
 
 ![dff_const4 schematic showing two separate constant 1 nodes driving q1 and q directly with clk and reset unconnected](screenshots/22_dff_const4_show.png)
 
-Two separate `1'1` constant sources, each driving one output directly. `q1` gets its constant 1 from the upper oval, `q` gets its constant 1 from the lower oval. `clk` and `reset` are isolated unconnected nodes at the sides. This is the multi-output equivalent of the `dff_const2` result — every dynamic element has been proved unnecessary and removed. In a physical implementation, both outputs would be tied to the power rail.
+Two separate `1'1` constant sources, each driving one output directly. `q1` gets its constant 1 from the upper oval, `q` gets its constant 1 from the lower oval. `clk` and `reset` are isolated unconnected nodes at the sides. This is the multi-output equivalent of the `dff_const2` result — every dynamic element has been proved unnecessary and removed.
 
 ---
 
@@ -387,13 +424,19 @@ The counter is 3 bits wide. It increments on every clock cycle. But the output `
 
 ![counter_opt synthesis stats showing 2 cells only 1 DFF and 1 NOT confirming 2 unused bits were eliminated](screenshots/25_counter_opt_synth_stats.png)
 
-The stats show 2 cells total: `$_DFF_PP0_: 1` and `$_NOT_: 1`. Only one flip-flop for a 3-bit counter — this is the optimization working exactly as intended. The `$_NOT_` is the toggle feedback: to make `count[0]` toggle, Yosys simply inverts its own output and feeds it back to D. Five wires and 9 wire-bits are listed, which includes the bus representation, but the cell count is the important number. Bits `count[1]` and `count[2]` left no trace in the synthesized netlist.
+The stats show 2 cells total: `$_DFF_PP0_: 1` and `$_NOT_: 1`. Only one flip-flop for a 3-bit counter — this is the optimization working exactly as intended. The `$_NOT_` is the toggle feedback: to make `count[0]` toggle, Yosys simply inverts its own output and feeds it back to D. Bits `count[1]` and `count[2]` left no trace in the synthesized netlist.
 
 **Schematic:**
 
 ![counter_opt schematic showing single dfrtp_1 flip-flop with clkinv feedback on D pin reset through inverter and count_0 tapped as output q](screenshots/26_counter_opt_show.png)
 
-The schematic shows one `sky130_fd_sc_hd__dfrtp_1` flip-flop with a `sky130_fd_sc_hd__clkinv_1` inverter feeding back from `Q` to `D`. The `reset` input passes through another `clkinv_1` to reach the active-low `RESET_B` pin. `clk` connects to `CLK`. The `Q` output drives `count[0:0]` which feeds both the inverter (for toggle feedback) and the output `q`. The entire 3-bit incrementing counter has been reduced to this single toggle flop. The carry chain, the two upper flops, and all associated routing from the RTL simply do not exist in the netlist.
+The schematic shows one `sky130_fd_sc_hd__dfrtp_1` flip-flop with a `sky130_fd_sc_hd__clkinv_1` inverter feeding back from `Q` to `D`. The `reset` input passes through another `clkinv_1` to reach the active-low `RESET_B` pin. `clk` connects to `CLK`. The `Q` output drives `count[0:0]` which feeds both the inverter (for toggle feedback) and the output `q`. The entire 3-bit incrementing counter has been reduced to this single toggle flop.
+
+**Manual Realization:**
+
+![counter_opt manual realization showing single DFF with clk RST_B and Q feeding back through inverter to D with output q and annotation that reg 2 0 count assign q equals count 0 reduces to 1 bit toggle flop only](screenshots/32_manual_counter_opt.png)
+
+The manual realization confirms the reasoning. The 3-bit counter `reg [2:0] count` with `assign q = count[0]` reduces to a single 1-bit toggle flop. The DFF has `clk`, `RST_B`, and its own `Q` output fed back through an inverter to `D` — toggling on every clock edge. Bits `count[1]` and `count[2]` are never drawn because they have no path to any output. This pre-synthesis analysis exactly matches what Yosys produced.
 
 ---
 
@@ -408,13 +451,6 @@ assign q = (count == 3'b100);
 The comparison `count == 3'b100` depends on all three bits of `count`. Yosys can no longer eliminate any bit — it needs all three flops to compute the output correctly.
 
 ```bash
-# counter_opt2.v — modify the output assignment
-# Check if counter_opt2.v exists first:
-ls counter_opt2.v
-
-# If not present, create it:
-sed 's/assign q = count\[0\]/assign q = (count == 3'"'"'b100)/' counter_opt.v > counter_opt2.v
-
 yosys
 read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 read_verilog counter_opt2.v
@@ -428,13 +464,13 @@ show
 
 ![counter_opt2 synthesis stats showing 9 cells with 3 DFFs and 6 combinational cells for full counter with comparator](screenshots/27_counter_opt2_synth_stats.png)
 
-The cell count jumps to 9: `$_ANDNOT_: 1`, `$_AND_: 1`, `$_DFF_PP0_: 3`, `$_NOT_: 1`, `$_OR_: 1`, `$_XOR_: 2`. Three flip-flops are now present, one for each bit of the count register. The remaining 6 cells are the combinational logic for two things: the 3-bit incrementer (the `count + 1` adder logic) and the equality comparator (`count == 3'b100`). The XOR cells are part of the adder carry chain, the AND and OR cells handle carry propagation, and the ANDNOT handles the comparison. This is what a real 3-bit counter looks like synthesized — considerably more hardware than the 1-flop version.
+The cell count jumps to 9: `$_ANDNOT_: 1`, `$_AND_: 1`, `$_DFF_PP0_: 3`, `$_NOT_: 1`, `$_OR_: 1`, `$_XOR_: 2`. Three flip-flops are now present, one for each bit of the count register. The remaining 6 cells are the combinational logic for the 3-bit incrementer and the equality comparator. The XOR cells are part of the adder carry chain, the AND and OR cells handle carry propagation, and the ANDNOT handles the comparison.
 
 **Schematic:**
 
 ![counter_opt2 schematic showing 3 DFF cells with full combinational adder and xnor comparator logic connecting all count bits to output q](screenshots/28_counter_opt2_show.png)
 
-The schematic is substantially more complex. Three `dfrtp_1` flop cells are visible on the right side, each carrying one bit of `count`. Their `Q` outputs feed into the combinational logic in the middle: `sky130_fd_sc_hd__nor3b_1`, `sky130_fd_sc_hd__xor2_1`, `sky130_fd_sc_hd__xnor2_1`, `sky130_fd_sc_hd__nand2_1`, and `sky130_fd_sc_hd__clkinv_1`. The `D` inputs of the flops are driven by the adder outputs feeding back from this combinational block. The `reset` path on the far left drives all three `RESET_B` pins through a set of inverters. The output `q` comes from the comparator output at the far right. Every bit of `count` is active and contributes to the result — none of them can be trimmed.
+The schematic is substantially more complex. Three `dfrtp_1` flop cells are visible, each carrying one bit of `count`. Their `Q` outputs feed into the combinational logic block containing `nor3b`, `xor2`, `xnor2`, `nand2`, and `clkinv` cells. The `D` inputs of the flops are driven by the adder outputs feeding back from this combinational block. Every bit of `count` is active and contributes to the result — none of them can be trimmed.
 
 **The core comparison:**
 
@@ -455,7 +491,7 @@ Same underlying RTL structure. One line of output assignment changed. The result
 | opt_check2 | Combinational | Mux + constant 1 → OR | 1 (`or2`) |
 | opt_check3 | Combinational | Nested mux + constants → AND3 | 1 (`and3`) |
 | opt_check4 | Combinational | Nested mux, redundant input → XNOR | 1 (`xnor2`) |
-| multiple_module_opt | Combinational | Flatten required for cross-boundary opt | 2 (`a21o` + `and2`) |
+| multiple_module_opt | Combinational | Flatten required for cross-boundary opt | 1 (`a21o`) |
 | dff_const1 | Sequential | Clock dependency — flop retained | 1 DFF |
 | dff_const2 | Sequential | Always 1 — flop eliminated | 0 |
 | dff_const3 | Sequential | Chained dependency — both flops retained | 2 DFFs |
