@@ -10,7 +10,7 @@
 **Three labs. One goal: understand when your RTL sim lies to you.**  
 Day 4 is entirely about GLS  simulating the synthesized netlist and catching the two most common ways RTL simulation diverges from actual hardware behavior.
 
-> *(Refer [Day_1](../Day_1/README.md) for iverilog/GTKWave setup and basic simulation flow.)*
+> *(Refer [Day_1](../Day_1/README.md) for iverilog/GTKWave setup and basic simulation flow.)* 
 
 ---
 
