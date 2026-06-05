@@ -30,7 +30,7 @@
 - [Course Structure](#-course-structure)
 - [What I Am Learning](#-what-i-am-learning)
 - [Repository Structure](#-repository-structure)
-- [Acknowledgements](#-acknowledgements)
+- [Acknowledgements](#-acknowledgements--attribution)
 
 ---
 
@@ -156,12 +156,32 @@ RTL-Design-Workshop/
 
 ---
 
-## 🙏 Acknowledgements
+## 🙏 Acknowledgements & Attribution
 
-- **[Kunal Ghosh](https://www.linkedin.com/in/kunal-ghosh-vlsisystemdesign-com-28084836/)** -- Founder of VSD, course instructor
-- **[Shon Taware](https://www.linkedin.com/in/shon-taware/)** -- Co-instructor
-- **[VLSI System Design (VSD)](https://www.vlsisystemdesign.com)** -- Workshop organizer and platform
+### Workshop Instructors & Organizers
+
+- **[Kunal Ghosh](https://www.linkedin.com/in/kunal-ghosh-vlsisystemdesign-com-28084836/)** — Founder, VSD; course instructor
+- **[Shon Taware](https://www.linkedin.com/in/shon-taware/)** — Co-instructor
+- **[VLSI System Design (VSD)](https://www.vlsisystemdesign.com)** — Workshop organizer and platform
 - Open-source contributors behind **Yosys**, **iverilog**, **GTKWave**, and the **SKY130 PDK**
+
+### CC BY 4.0 Attribution
+
+Portions of this repository including conceptual explanations, lab documentation structure, and some markdown content are adapted from:
+
+> **RTL_workshop** by Ahtesham (vlsienthusiast00x)  
+> Repository: https://github.com/vlsienthusiast00x/RTL_workshop  
+> License: [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+
+This repository is a personal adaptation of workshop materials. Modifications include: personal lab screenshots, personal observations, reorganized scheduling (10-day format), and individual notes and commentary.
+
+### Workshop Collateral (Verilog Files)
+
+Verilog source files used in lab exercises, and Verilog code blocks appearing in this repository's documentation, originate from the official VSD workshop collateral repository:
+
+> **sky130RTLDesignAndSynthesisWorkshop** by Kunal Ghosh / VSD  
+> Repository: https://github.com/kunalg123/sky130RTLDesignAndSynthesisWorkshop  
+> Note: This repository has no explicit open-source license. Files are used within the context of the VSD workshop as provided to enrolled students.
 
 ---
 
