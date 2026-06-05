@@ -110,9 +110,7 @@ Yosys mapped the ternary operator directly to a single `sky130_fd_sc_hd__mux2_1`
 ### GLS
 
 ```bash
-iverilog ../my_lib/verilog_model/primitives.v \
-         ../my_lib/verilog_model/sky130_fd_sc_hd.v \
-         ternary_operator_mux_net.v tb_ternary_operator_mux.v
+iverilog verilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v ternary_operator_mux_net.v tb_ternary_operator_mux.v
 ./a.out
 gtkwave tb_ternary_operator_mux.vcd
 ```
@@ -164,9 +162,7 @@ Yosys synthesized a correct `sky130_fd_sc_hd__mux2_1` cell ($86) the same standa
 ### GLS
 
 ```bash
-iverilog ../my_lib/verilog_model/primitives.v \
-         ../my_lib/verilog_model/sky130_fd_sc_hd.v \
-         bad_mux_net.v tb_bad_mux.v
+iverilog verilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v bad_mux_net.v tb_bad_mux.v
 ./a.out
 gtkwave tb_bad_mux.vcd
 ```
@@ -223,9 +219,7 @@ Yosys synthesized a **`sky130_fd_sc_hd__o21a_1`** cell ($87) — this is an OR-A
 ### GLS
 
 ```bash
-iverilog ../my_lib/verilog_model/primitives.v \
-         ../my_lib/verilog_model/sky130_fd_sc_hd.v \
-         blocking_caveat_net.v tb_blocking_caveat.v
+iverilog verilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v blocking_caveat_net.v tb_blocking_caveat.v
 ./a.out
 gtkwave tb_blocking_caveat.vcd
 ```
