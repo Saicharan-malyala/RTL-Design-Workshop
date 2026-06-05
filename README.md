@@ -64,8 +64,8 @@ The workshop uses the **SKY130 standard cell library** — the same open PDK bac
 | [Day 1](https://github.com/Saicharan-malyala/RTL-Design-Workshop/tree/main/Day-1) | Introduction to Verilog RTL Design and Synthesis |
 | [Day 2](https://github.com/Saicharan-malyala/RTL-Design-Workshop/tree/main/Day-2) | Timing libs, hierarchical vs flat synthesis |
 | [Day 3](https://github.com/Saicharan-malyala/RTL-Design-Workshop/tree/main/Day-3) | Combinational and sequential optimizations |
-| Day 4 | GLS, blocking vs non-blocking statements |
-| Day 5 | Optimization in synthesis |
+| [Day 4](https://github.com/Saicharan-malyala/RTL-Design-Workshop/tree/main/Day-4) | GLS, blocking vs non-blocking statements |
+| [Day 5](https://github.com/Saicharan-malyala/RTL-Design-Workshop/tree/main/Day-5) | Optimization in synthesis |
 
 ---
 
